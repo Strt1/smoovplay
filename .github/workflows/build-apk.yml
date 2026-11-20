@@ -10,21 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
+      - name: Set working directory
+        run: |
+          # Cari folder yang berisi pubspec.yaml
+          FOLDER=$(find . -name "pubspec.yaml" -printf "%h\n" | head -n 1)
+          echo "PROJECT_ROOT=$FOLDER" >> $GITHUB_ENV
+
       - name: Get dependencies
         run: flutter pub get
+        working-directory: ${{ env.PROJECT_ROOT }}
 
       - name: Build APK
         run: flutter build apk --release
+        working-directory: ${{ env.PROJECT_ROOT }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: smoovplay-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ env.PROJECT_ROOT }}/build/app/outputs/flutter-apk/app-release.apk
